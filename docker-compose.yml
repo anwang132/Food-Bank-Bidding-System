@@ -1,0 +1,88 @@
+# Local stack: PostgreSQL, Redis, one-shot migrations, two API processes behind nginx.
+# Host ports are deliberately uncommon to avoid clashing with other local projects.
+name: foodbank
+
+x-api: &api
+  build: ./backend
+  restart: unless-stopped
+  environment: &api-env
+    FB_ENVIRONMENT: development
+    FB_DATABASE_URL: postgresql+psycopg://foodbank:foodbank@db:5432/foodbank
+    FB_REDIS_URL: redis://redis:6379/0
+    FB_ALLOWED_ORIGINS: http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173
+    # Plain HTTP on localhost; production must set this to true (enforced at startup).
+    FB_COOKIE_SECURE: "false"
+    FB_LOG_LEVEL: INFO
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+    redis:
+      condition: service_started
+  healthcheck:
+    test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=3).status == 200 else 1)"]
+    interval: 5s
+    timeout: 4s
+    retries: 12
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: foodbank
+      POSTGRES_PASSWORD: foodbank
+      POSTGRES_DB: foodbank
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U foodbank -d foodbank"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:56379:6379"
+
+  migrate:
+    build: ./backend
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      <<: *api-env
+      FB_INSTANCE_ID: migrate
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api-1:
+    <<: *api
+    environment:
+      <<: *api-env
+      FB_INSTANCE_ID: api-1
+    ports:
+      - "127.0.0.1:8001:8000"
+
+  api-2:
+    <<: *api
+    environment:
+      <<: *api-env
+      FB_INSTANCE_ID: api-2
+    ports:
+      - "127.0.0.1:8002:8000"
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      api-1:
+        condition: service_healthy
+      api-2:
+        condition: service_healthy
+
+volumes:
+  pgdata:

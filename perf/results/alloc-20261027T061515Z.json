@@ -1,0 +1,152 @@
+{
+  "kind": "allocation-microbenchmark",
+  "env": {
+    "timestamp": "2026-10-27T06:15:15.502340+00:00",
+    "git_commit": "3c2a746",
+    "python": "3.13.14",
+    "platform": "macOS-15.6.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu_count": 10,
+    "clock": {
+      "name": "perf_counter_ns",
+      "resolution_s": 4.166666666666666e-08,
+      "monotonic": true,
+      "read_overhead_ns_median": 41.0
+    }
+  },
+  "workload": "one lot, supply = half of demand, 5% ineligible, weights 1-20, tiers 1-10 (seeded RNG)",
+  "results": [
+    {
+      "strategy": "fcfs",
+      "requests": 10,
+      "iterations": 2000,
+      "n": 2000,
+      "mean_ms": 0.0107,
+      "p50_ms": 0.0109,
+      "p95_ms": 0.0113,
+      "p99_ms": 0.0115,
+      "max_ms": 0.0142
+    },
+    {
+      "strategy": "fcfs",
+      "requests": 100,
+      "iterations": 2000,
+      "n": 2000,
+      "mean_ms": 0.1012,
+      "p50_ms": 0.1016,
+      "p95_ms": 0.1029,
+      "p99_ms": 0.1072,
+      "max_ms": 0.115
+    },
+    {
+      "strategy": "fcfs",
+      "requests": 1000,
+      "iterations": 200,
+      "n": 200,
+      "mean_ms": 1.003,
+      "p50_ms": 1.0022,
+      "p95_ms": 1.0115,
+      "p99_ms": 1.0202,
+      "max_ms": 1.04
+    },
+    {
+      "strategy": "fcfs",
+      "requests": 5000,
+      "iterations": 40,
+      "n": 40,
+      "mean_ms": 5.4713,
+      "p50_ms": 5.3728,
+      "p95_ms": 5.5435,
+      "p99_ms": null,
+      "max_ms": 6.8979
+    },
+    {
+      "strategy": "need_weighted",
+      "requests": 10,
+      "iterations": 2000,
+      "n": 2000,
+      "mean_ms": 0.0544,
+      "p50_ms": 0.0541,
+      "p95_ms": 0.0558,
+      "p99_ms": 0.0577,
+      "max_ms": 0.0732
+    },
+    {
+      "strategy": "need_weighted",
+      "requests": 100,
+      "iterations": 2000,
+      "n": 2000,
+      "mean_ms": 0.664,
+      "p50_ms": 0.6633,
+      "p95_ms": 0.6698,
+      "p99_ms": 0.6768,
+      "max_ms": 0.8213
+    },
+    {
+      "strategy": "need_weighted",
+      "requests": 1000,
+      "iterations": 200,
+      "n": 200,
+      "mean_ms": 7.1998,
+      "p50_ms": 7.1606,
+      "p95_ms": 7.3438,
+      "p99_ms": 8.5453,
+      "max_ms": 8.7628
+    },
+    {
+      "strategy": "need_weighted",
+      "requests": 5000,
+      "iterations": 40,
+      "n": 40,
+      "mean_ms": 38.0774,
+      "p50_ms": 37.4401,
+      "p95_ms": 43.0938,
+      "p99_ms": null,
+      "max_ms": 45.4047
+    },
+    {
+      "strategy": "priority",
+      "requests": 10,
+      "iterations": 2000,
+      "n": 2000,
+      "mean_ms": 0.0131,
+      "p50_ms": 0.013,
+      "p95_ms": 0.0132,
+      "p99_ms": 0.0135,
+      "max_ms": 0.0166
+    },
+    {
+      "strategy": "priority",
+      "requests": 100,
+      "iterations": 2000,
+      "n": 2000,
+      "mean_ms": 0.125,
+      "p50_ms": 0.1246,
+      "p95_ms": 0.1285,
+      "p99_ms": 0.1322,
+      "max_ms": 0.1425
+    },
+    {
+      "strategy": "priority",
+      "requests": 1000,
+      "iterations": 200,
+      "n": 200,
+      "mean_ms": 1.257,
+      "p50_ms": 1.2517,
+      "p95_ms": 1.2907,
+      "p99_ms": 1.3205,
+      "max_ms": 1.3688
+    },
+    {
+      "strategy": "priority",
+      "requests": 5000,
+      "iterations": 40,
+      "n": 40,
+      "mean_ms": 7.0402,
+      "p50_ms": 6.878,
+      "p95_ms": 8.561,
+      "p99_ms": null,
+      "max_ms": 8.8648
+    }
+  ]
+}

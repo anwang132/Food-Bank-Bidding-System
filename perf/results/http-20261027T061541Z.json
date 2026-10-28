@@ -1,0 +1,73 @@
+{
+  "kind": "http-db",
+  "env": {
+    "timestamp": "2026-10-27T06:15:41.836647+00:00",
+    "git_commit": "3c2a746",
+    "python": "3.13.14",
+    "platform": "macOS-15.6.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu_count": 10,
+    "clock": {
+      "name": "perf_counter_ns",
+      "resolution_s": 4.166666666666666e-08,
+      "monotonic": true,
+      "read_overhead_ns_median": 83.0
+    }
+  },
+  "base_url": "http://localhost:8080",
+  "workload": {
+    "lots": 25,
+    "organizations": 4
+  },
+  "phases": {
+    "create_requests": {
+      "operations": 100,
+      "concurrency": 16,
+      "loop": "closed (each worker issues its next request when the previous completes)",
+      "wall_s": 0.425,
+      "achieved_per_s": 235.2,
+      "errors": {},
+      "n": 100,
+      "mean_ms": 63.4756,
+      "p50_ms": 62.1871,
+      "p95_ms": 100.5082,
+      "p99_ms": 112.4824,
+      "max_ms": 124.2035
+    },
+    "mixed_read_edit": {
+      "concurrency": 16,
+      "duration_s": 20.0,
+      "warmup_s": 5.0,
+      "write_ratio": 0.2,
+      "loop": "closed",
+      "note": "HTTP 409 here is the expected VERSION_CONFLICT: several workers per organization edit the same requests concurrently with optimistic versions.",
+      "wall_s": 20.031,
+      "achieved_per_s": 633.9,
+      "errors": {
+        "HTTP 409": 250
+      },
+      "reads": {
+        "n": 10188,
+        "mean_ms": 9.0918,
+        "p50_ms": 8.4086,
+        "p95_ms": 14.636,
+        "p99_ms": 20.3488,
+        "max_ms": 77.085
+      },
+      "edits": {
+        "n": 2509,
+        "mean_ms": 81.034,
+        "p50_ms": 90.2613,
+        "p95_ms": 146.773,
+        "p99_ms": 184.6532,
+        "max_ms": 378.619
+      }
+    },
+    "close_finalize_ms": {
+      "close": 14.789334,
+      "finalize": 22.632208,
+      "errors": {},
+      "requests_in_round": 100
+    }
+  }
+}

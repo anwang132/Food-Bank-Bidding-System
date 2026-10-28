@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: foodbank
+          POSTGRES_PASSWORD: foodbank
+          POSTGRES_DB: foodbank
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U foodbank" --health-interval 2s --health-retries 30
+      redis:
+        image: redis:7.4-alpine
+        ports: ["6379:6379"]
+    env:
+      FB_TEST_DATABASE_URL: postgresql+psycopg://foodbank:foodbank@localhost:5432/foodbank_test
+      FB_TEST_REDIS_URL: redis://localhost:6379/1
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - name: Format and lint
+        run: uv run ruff format --check . && uv run ruff check .
+      - name: Type check
+        run: uv run mypy app
+      - name: Migrations apply to a fresh database
+        run: |
+          uv run alembic -x url=postgresql+psycopg://foodbank:foodbank@localhost:5432/foodbank upgrade head
+          uv run alembic -x url=postgresql+psycopg://foodbank:foodbank@localhost:5432/foodbank check
+      - name: Unit, PostgreSQL integration, API and realtime tests
+        run: uv run pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  e2e:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Start stack
+        run: make up && make seed
+      - name: Install test tooling
+        run: |
+          (cd backend && uv sync --frozen)
+          (cd frontend && npm ci && npx playwright install --with-deps chromium)
+      - name: Browser smoke (journey + authorization + narrow width)
+        run: cd frontend && npm run e2e
+      - name: Cross-process delivery and Redis outage
+        run: make test-stack && make e2e-realtime
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color api-1 api-2 web | tail -n 300
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
